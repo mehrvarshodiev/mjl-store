@@ -6,7 +6,10 @@ export function formatPrice(amount: number, currency: string): string {
 
 export function formatProduct(product: Product): string {
   const lines = [`🛍 <b>${escapeHtml(product.name)}</b>`];
-  if (product.brand || product.model) lines.push(`🏷 ${[product.brand, product.model].filter(Boolean).map(escapeHtml).join(' ')}`);
+  if (product.brand || product.model) {
+    const labels = [product.brand, product.model].filter((value): value is string => Boolean(value));
+    lines.push(`🏷 ${labels.map(escapeHtml).join(' ')}`);
+  }
   lines.push(`💰 Цена: <b>${formatPrice(product.price, product.currency)}</b>`);
   lines.push(`📦 Наличие: ${product.stock_quantity > 0 ? `${product.stock_quantity} шт.` : 'Нет в наличии'}`);
   if (product.description) lines.push('', escapeHtml(product.description));
