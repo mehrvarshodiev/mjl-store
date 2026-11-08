@@ -6,7 +6,7 @@
   "engines": { "node": ">=20 <23" },
   "scripts": {
     "dev": "vercel dev",
-    "build": "tsc --noEmit",
+    "build": "tsc --noEmit && vitest run",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
