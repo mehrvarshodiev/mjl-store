@@ -10,7 +10,7 @@ export function formatProduct(product: Product): string {
     const labels = [product.brand, product.model].filter((value): value is string => Boolean(value));
     lines.push(`🏷 ${labels.map(escapeHtml).join(' ')}`);
   }
-  lines.push(`💰 Цена: <b>${formatPrice(product.price, product.currency)}</b>`);
+  lines.push(`💰 Цена: <b>${escapeHtml(formatPrice(product.price, product.currency))}</b>`);
   lines.push(`📦 Наличие: ${product.stock_quantity > 0 ? `${product.stock_quantity} шт.` : 'Нет в наличии'}`);
   if (product.description) lines.push('', escapeHtml(product.description));
   const specs = Object.entries(product.specifications ?? {});
