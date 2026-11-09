@@ -94,7 +94,7 @@ export function registerProductAdmin(bot:Bot) {
   bot.callbackQuery(/^admin:save:(draft|chosen)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
     const s=await session(ctx.from.id); if(!s||!s.payload.confirm_create) return void await ctx.answerCallbackQuery({text:'Предпросмотр устарел',show_alert:true});
-    const p=s.payload; const requested=ctx.match[1]!==='draft'?'draft':String(p.status);
+    const p=s.payload; const requested=ctx.match[1] === 'draft' ? 'draft' : String(p.status);
     const status=requested==='draft'?'draft':requested==='preorder'?'preorder':requested==='out_of_stock'||Number(p.stock_quantity)===0?'out_of_stock':'active';
     const {data,error}=await db.from('products').insert({
       name:String(p.name),category_id:p.category_id??null,brand:p.brand??null,model:p.model??null,
