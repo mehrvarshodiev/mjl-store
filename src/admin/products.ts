@@ -82,19 +82,19 @@ export function registerProductAdmin(bot:Bot) {
   bot.callbackQuery(/^admin:category:(.+)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
     const s=await session(ctx.from.id); if(!s||s.state!=='category') return void await ctx.answerCallbackQuery({text:'Сессия истекла',show_alert:true});
-    s.payload.category_id=ctx.match[1]; s.state='brand'; await putSession(ctx.from.id,s); await ctx.answerCallbackQuery();
+    s.payload.category_id=ctx.match[1]!; s.state='brand'; await putSession(ctx.from.id,s); await ctx.answerCallbackQuery();
     await ctx.reply('Укажите производителя (или «-», если неизвестен).');
   });
   bot.callbackQuery(/^admin:status:(draft|active|out_of_stock|preorder)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
     const s=await session(ctx.from.id); if(!s||s.state!=='status') return void await ctx.answerCallbackQuery({text:'Сессия истекла',show_alert:true});
-    s.payload.status=ctx.match[1]; s.state='edit'; s.payload.confirm_create=true; await putSession(ctx.from.id,s); await ctx.answerCallbackQuery();
+    s.payload.status=ctx.match[1]!; s.state='edit'; s.payload.confirm_create=true; await putSession(ctx.from.id,s); await ctx.answerCallbackQuery();
     await ctx.reply(productPreview(s.payload),{parse_mode:'HTML',reply_markup:new InlineKeyboard().text('💾 Сохранить черновик','admin:save:draft').text('✅ Сохранить','admin:save:chosen').row().text('❌ Отмена','admin:cancel')});
   });
   bot.callbackQuery(/^admin:save:(draft|chosen)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
     const s=await session(ctx.from.id); if(!s||!s.payload.confirm_create) return void await ctx.answerCallbackQuery({text:'Предпросмотр устарел',show_alert:true});
-    const p=s.payload; const requested=ctx.match[1]==='draft'?'draft':String(p.status);
+    const p=s.payload; const requested=ctx.match[1]!==='draft'?'draft':String(p.status);
     const status=requested==='draft'?'draft':requested==='preorder'?'preorder':requested==='out_of_stock'||Number(p.stock_quantity)===0?'out_of_stock':'active';
     const {data,error}=await db.from('products').insert({
       name:String(p.name),category_id:p.category_id??null,brand:p.brand??null,model:p.model??null,
@@ -107,22 +107,22 @@ export function registerProductAdmin(bot:Bot) {
   });
   bot.callbackQuery(/^admin:product:(.+)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
-    await ctx.answerCallbackQuery(); await showProduct(ctx,ctx.match[1]);
+    await ctx.answerCallbackQuery(); await showProduct(ctx,ctx.match[1]!);
   });
   bot.callbackQuery(/^admin:archive:(.+)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
-    const id=ctx.match[1]; const {error}=await db.from('products').update({status:'archived',updated_at:new Date().toISOString()}).eq('id',id);
+    const id=ctx.match[1]!; const {error}=await db.from('products').update({status:'archived',updated_at:new Date().toISOString()}).eq('id',id);
     if(error) return void await ctx.answerCallbackQuery({text:'Не удалось архивировать',show_alert:true});
     await log(ctx.from.id,'product.archived',id); await ctx.answerCallbackQuery({text:'В архиве'}); await ctx.reply('📦 Товар архивирован.');
   });
   bot.callbackQuery(/^admin:delete:(.+)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
-    await ctx.answerCallbackQuery(); const id=ctx.match[1];
+    await ctx.answerCallbackQuery(); const id=ctx.match[1]!;
     await ctx.reply('⚠️ <b>Окончательно удалить товар?</b>\nСвязанные заказы сохранятся, связь публикаций с товаром будет очищена.',{parse_mode:'HTML',reply_markup:new InlineKeyboard().text('🗑 Подтвердить','admin:delete-confirm:'+id).text('Отмена','admin:product:'+id)});
   });
   bot.callbackQuery(/^admin:delete-confirm:(.+)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
-    const id=ctx.match[1]; const {data:p}=await db.from('products').select('id,name').eq('id',id).maybeSingle();
+    const id=ctx.match[1]!; const {data:p}=await db.from('products').select('id,name').eq('id',id).maybeSingle();
     if(!p) return void await ctx.answerCallbackQuery({text:'Товар уже отсутствует',show_alert:true});
     await log(ctx.from.id,'product.deleted',id,{name:p.name});
     const {error}=await db.from('products').delete().eq('id',id);
@@ -131,7 +131,7 @@ export function registerProductAdmin(bot:Bot) {
   });
   bot.callbackQuery(/^admin:edit:(.+)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
-    await ctx.answerCallbackQuery(); const id=ctx.match[1];
+    await ctx.answerCallbackQuery(); const id=ctx.match[1]!;
     const kb=new InlineKeyboard().text('Название','admin:editfield:'+id+':name').text('Бренд','admin:editfield:'+id+':brand').row()
       .text('Модель','admin:editfield:'+id+':model').text('Цена','admin:editfield:'+id+':price').row()
       .text('Описание','admin:editfield:'+id+':description').text('Остаток','admin:editfield:'+id+':stock_quantity').row()
@@ -140,7 +140,7 @@ export function registerProductAdmin(bot:Bot) {
   });
   bot.callbackQuery(/^admin:editfield:([^:]+):(name|brand|model|price|description|stock_quantity|status)$/,async ctx=>{
     if(!isAdmin(ctx.from.id)) return void await ctx.answerCallbackQuery({text:'Доступ запрещён',show_alert:true});
-    await ctx.answerCallbackQuery(); const id=ctx.match[1],field=ctx.match[2];
+    await ctx.answerCallbackQuery(); const id=ctx.match[1]!,field=ctx.match[2]!;
     await putSession(ctx.from.id,{state:'edit',payload:{product_id:id,field}});
     const labels:Record<string,string>={name:'Новое название:',brand:'Новый бренд (или -):',model:'Новая модель (или -):',price:'Новая цена в RUB:',description:'Новое описание (или -):',stock_quantity:'Новое целое количество:',status:'Статус: draft, active, out_of_stock, archived или preorder:'};
     await ctx.reply(labels[field]??'Новое значение:');
@@ -154,14 +154,14 @@ export function registerProductAdmin(bot:Bot) {
     await clearSession(ctx.from.id); await ctx.reply('Сценарий отменён.',{reply_markup:menu()});
   });
   bot.on('message:photo',async ctx=>{
-    if(!isAdmin(ctx.from.id)) return;
+    if(!ctx.from || !isAdmin(ctx.from.id)) return;
     const s=await session(ctx.from.id); if(!s||s.state!=='photos') return;
     const ids=(s.payload.photo_file_ids as string[]|undefined)??[]; if(ids.length>=10) return void await ctx.reply('Можно добавить не более 10 фото.');
     ids.push(ctx.message.photo.at(-1)!.file_id); s.payload.photo_file_ids=ids; await putSession(ctx.from.id,s);
     await ctx.reply('Фото добавлено ('+ids.length+'/10). Отправьте ещё фото или напишите «Готово».');
   });
   bot.on('message:text',async ctx=>{
-    if(!isAdmin(ctx.from.id)) return;
+    if(!ctx.from || !isAdmin(ctx.from.id)) return;
     const s=await session(ctx.from.id); if(!s) return;
     const value=ctx.message.text.trim(); if(value.startsWith('/')) return;
     if(s.state==='edit'&&!s.payload.confirm_create){
