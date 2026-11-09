@@ -19,7 +19,8 @@ bot.use(async (ctx, next) => {
 });
 
 const customerMenu = new InlineKeyboard()
-  .text('🛍 Каталог товаров', 'catalog').row()
+  .webApp('🛍 Открыть магазин', config.APP_BASE_URL ? `${config.APP_BASE_URL}/miniapp.html` : 'https://mjl-store.vercel.app/miniapp.html').row()
+  .text('📂 Каталог в чате', 'catalog').row()
   .text('🔥 Новинки', 'new').text('💰 Акции', 'promotions').row()
   .text('📦 Мои заказы', 'orders').text('🔎 Поиск товара', 'search').row()
   .text('💬 Связаться с продавцом', 'contact').row()
