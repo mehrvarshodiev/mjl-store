@@ -70,9 +70,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     return;
   }
 
-  const order = data as { order_number?: number; total_amount?: number; currency?: string; duplicate?: boolean };
+  const order = data as { order_id?: string; order_number?: number; total_amount?: number; currency?: string; duplicate?: boolean };
+  const { data: orderLines } = order.duplicate || !order.order_id
+    ? { data: [] as Array<{ product_name: string; quantity: number; unit_price: number; currency: string }> }
+    : await db.from('order_items').select('product_name,quantity,unit_price,currency').eq('order_id', order.order_id);
+  const itemSummary = (orderLines ?? []).map((item) => `• ${item.product_name} × ${item.quantity} — ${item.unit_price} ${item.currency}`);
   const summary = [
     `Новый заказ MJL #${order.order_number ?? '—'}`,
+    ...itemSummary,
     `Покупатель: ${parsed.data.customerName}`,
     `Телефон: ${parsed.data.phone}`,
     `Получение: ${parsed.data.fulfillmentMethod === 'delivery' ? 'Доставка' : 'Самовывоз'}`,
