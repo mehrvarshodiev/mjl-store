@@ -2,6 +2,7 @@ import { Bot, InlineKeyboard } from 'grammy';
 import { config, isAdmin } from './config.js';
 import { db, type Product } from './db.js';
 import { formatProduct } from './format.js';
+import { registerProductAdmin } from './admin/products.js';
 
 // Telegram retries webhook updates. Persist update_id before side effects to ignore duplicates.
 export const bot = new Bot(config.BOT_TOKEN);
@@ -17,6 +18,9 @@ bot.use(async (ctx, next) => {
     throw processingError;
   }
 });
+
+// Real product-management handlers must precede the generic admin callback fallback.
+registerProductAdmin(bot);
 
 const customerMenu = new InlineKeyboard()
   .webApp('🛍 Открыть магазин', config.APP_BASE_URL ? `${config.APP_BASE_URL}/miniapp.html` : 'https://mjl-store.vercel.app/miniapp.html').row()
