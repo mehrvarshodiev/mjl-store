@@ -83,7 +83,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse): 
     `Комментарий: ${parsed.data.comment || 'нет'}`,
   ].join('\n');
 
-  await Promise.all([...adminIds].map(async (adminId) => {
+  if (!order.duplicate) await Promise.all([...adminIds].map(async (adminId) => {
     try {
       const response = await fetch(`https://api.telegram.org/bot${config.BOT_TOKEN}/sendMessage`, {
         method: 'POST',
