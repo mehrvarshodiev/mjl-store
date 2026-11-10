@@ -150,8 +150,9 @@ export function registerProductAdmin(bot:Bot) {
     await clearSession(ctx.from.id); await ctx.answerCallbackQuery({text:'Отменено'}); await ctx.reply('Операция отменена.',{reply_markup:menu()});
   });
   bot.command('cancel',async ctx=>{
-    if(!isAdmin(ctx.from?.id)) return;
-    await clearSession(ctx.from.id); await ctx.reply('Сценарий отменён.',{reply_markup:menu()});
+    const userId = ctx.from?.id;
+    if (userId === undefined || !isAdmin(userId)) return;
+    await clearSession(userId); await ctx.reply('Сценарий отменён.',{reply_markup:menu()});
   });
   bot.on('message:photo',async ctx=>{
     if(!ctx.from || !isAdmin(ctx.from.id)) return;
